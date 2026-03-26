@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
 import { logger } from "hono/logger";
-import { globalErrorHandler } from "./lib/errorHandler";
-import authRouter from "./routes/auth";
+import { globalErrorHandler } from "./lib/errorHandler.js";
+import authRouter from "./routes/auth/index.js";
 
 // Routes
 
