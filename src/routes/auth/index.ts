@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { helloWorld } from "./handlers";
+import { setMemberAccount } from "./handlers";
 
 const authRouter = new Hono();
 
-authRouter.get("/", helloWorld);
+authRouter.get("/test", setMemberAccount);
 
 export default authRouter;
