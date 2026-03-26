@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { setMemberAccount } from "./handlers";
+import { setMemberAccount } from "./handlers.js";
 
 const authRouter = new Hono();
 
