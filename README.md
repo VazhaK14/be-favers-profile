@@ -71,6 +71,104 @@ Server akan menyala di `http://localhost:3001`. Anda bisa mengetesnya dengan mem
 
 ---
 
+## 🔌 API Auth untuk Frontend
+
+Base URL lokal backend:
+`http://localhost:3001`
+
+Semua endpoint utama untuk FE ada di prefix:
+`/api`
+
+### 1) Health Check
+
+- **Method**: `GET`
+- **URL**: `/api/health`
+- **Response 200**:
+
+```json
+{ "status": "ok" }
+```
+
+### 2) Register
+
+- **Method**: `POST`
+- **URL**: `/api/auth/register`
+- **Body** (`application/json`):
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "User Name"
+}
+```
+
+- **Response 201**: data user baru
+- **Response 409**: email sudah terdaftar
+
+### 3) Login
+
+- **Method**: `POST`
+- **URL**: `/api/auth/login`
+- **Body** (`application/json`):
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+- **Response 200**: mengembalikan `token`, `expiresAt`, dan data `user`
+
+Contoh response login berhasil:
+
+```json
+{
+  "success": true,
+  "message": "Logged in",
+  "data": {
+    "token": "uuid-token",
+    "expiresAt": "2026-04-03T02:12:04.993Z",
+    "user": {
+      "id": "user-id",
+      "email": "user@example.com",
+      "name": "User Name"
+    }
+  },
+  "meta": {
+    "timestamp": "2026-03-27T02:12:05.759Z"
+  }
+}
+```
+
+### 4) Cek Sesi (untuk FE)
+
+- **Method**: `GET`
+- **URL**: `/api/auth/me`
+- **Header wajib**:
+
+```http
+Authorization: Bearer <token_dari_login>
+```
+
+- **Response 200**: sesi valid (berisi data `user` + info `session`)
+- **Response 401**: token tidak ada / tidak valid / expired
+
+Contoh fetch dari FE:
+
+```ts
+const token = localStorage.getItem("token");
+const res = await fetch("http://localhost:3001/api/auth/me", {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+const data = await res.json();
+```
+
+---
+
 ## 📁 Struktur Folder Utama
 
 Arsitektur aplikasi ini menggunakan pendekatan modular berbasis _route_:
