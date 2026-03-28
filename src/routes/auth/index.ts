@@ -1,13 +1,18 @@
 import { Hono } from "hono";
-import { login, me, register, setMemberAccount } from "./handlers.js";
+import { auth } from "../../lib/auth"; 
 
 const authRouter = new Hono();
 
-authRouter.post("/register", register);
-authRouter.post("/login", login);
-authRouter.get("/me", me);
+// Explicit route untuk OpenAPI
+authRouter.get("/openapi.json", async (c) => {
+  // Better Auth biasanya mengekspor schema melalui plugin OpenAPI
+  const schema = await auth.api.generateOpenAPISchema();
+  return c.json(schema);
+});
 
-// Other auth routes (legacy/test)
-authRouter.get("/test", setMemberAccount);
+// Fallback untuk semua endpoint auth lainnya (login, callback, get-session, dll)
+authRouter.all("*", (c) => {
+  return auth.handler(c.req.raw);
+});
 
 export default authRouter;

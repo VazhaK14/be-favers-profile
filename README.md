@@ -167,6 +167,44 @@ const res = await fetch("http://localhost:3001/api/auth/me", {
 const data = await res.json();
 ```
 
+### 5) Google OAuth via Better Auth
+
+Endpoint Better Auth juga aktif di prefix yang sama (`/api/auth/*`), sehingga FE bisa trigger login Google langsung ke backend.
+
+- **Method**: `POST`
+- **URL**: `/api/auth/sign-in/social`
+- **Body** (`application/json`):
+
+```json
+{
+  "provider": "google",
+  "callbackURL": "http://localhost:5173"
+}
+```
+
+- **Behavior**: backend akan mengembalikan URL OAuth Google (atau redirect response sesuai mode request), lalu user diarahkan ke consent screen Google dan kembali ke callback URL FE.
+
+Contoh trigger dari FE:
+
+```ts
+const res = await fetch("http://localhost:3001/api/auth/sign-in/social", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    provider: "google",
+    callbackURL: "http://localhost:5173",
+  }),
+});
+const data = await res.json();
+window.location.href = data?.url;
+```
+
+Pastikan variabel env ini terisi:
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
 ---
 
 ## 📁 Struktur Folder Utama
