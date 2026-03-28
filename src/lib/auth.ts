@@ -7,8 +7,12 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  rateLimit: {
+    window: 10,
+    max: 100,
+  },
   plugins: [
-    openAPI() // Memastikan plugin OpenAPI aktif
+    openAPI(), // Memastikan plugin OpenAPI aktif
   ],
   socialProviders: {
     google: {

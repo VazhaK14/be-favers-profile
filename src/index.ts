@@ -21,11 +21,6 @@ app.use(
   }),
 );
 
-// Health check
-app.get("/health", (c) => {
-  return c.json({ status: "ok" });
-});
-
 // API routes
 app.get("/api/health", (c) => c.json({ status: "ok" }));
 app.route("/api/auth", authRouter);
