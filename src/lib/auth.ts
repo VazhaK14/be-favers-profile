@@ -11,6 +11,14 @@ export const auth = betterAuth({
     window: 10,
     max: 100,
   },
+
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+    },
+  },
+
   plugins: [
     openAPI(), // Memastikan plugin OpenAPI aktif
   ],

@@ -200,6 +200,7 @@ window.location.href = data?.url;
 ```
 
 Pastikan variabel env ini terisi:
+
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
 - `GOOGLE_CLIENT_ID`

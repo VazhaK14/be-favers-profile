@@ -21,6 +21,7 @@
   },
   "scripts": {
     "dev": "bun run --hot src/index.ts",
+    "dev:staging": "NODE_ENV=staging bun run --hot src/index.ts",
     "build": "prisma generate"
   }
 }
