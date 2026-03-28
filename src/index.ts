@@ -21,13 +21,9 @@ app.use(
   }),
 );
 
-// Health check
-app.get("/health", (c) => {
-  return c.json({ status: "ok" });
-});
-
-// Auth Routes (Stubs)
-app.route("/auth", authRouter);
+// API routes
+app.get("/api/health", (c) => c.json({ status: "ok" }));
+app.route("/api/auth", authRouter);
 
 app.get("/", (c) => {
   return c.text("Hello Favers!");
