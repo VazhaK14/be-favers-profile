@@ -7,6 +7,64 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "USER",
+      },
+    },
+  },
+  databaseHooks: {
+    user: {
+      // Hook untuk User Baru
+      create: {
+        before: async (user) => {
+          const listMember = (process.env.LIST_MEMBER || "").split(",").map(e => e.trim());
+          if (listMember.includes(user.email)) {
+            return {
+              data: {
+                ...user,
+                role: "MEMBER",
+              },
+            };
+          }
+          return { data: user };
+        },
+      },
+    },
+    session: {
+      // Hook untuk User Lama (dijalankan setiap kali login/session dibuat)
+      create: {
+        before: async (session) => {
+          const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+          });
+
+          if (user) {
+            const listMember = (process.env.LIST_MEMBER || "").split(",").map(e => e.trim());
+            const isWhitelisted = listMember.includes(user.email);
+
+            // Jika email ada di whitelist tapi di DB masih USER, upgrade ke MEMBER
+            if (isWhitelisted && user.role === "USER") {
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { role: "MEMBER" },
+              });
+            } 
+            // Opsional: Jika email dihapus dari whitelist tapi di DB masih MEMBER, downgrade ke USER
+            else if (!isWhitelisted && user.role === "MEMBER") {
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { role: "USER" },
+              });
+            }
+          }
+          return { data: session };
+        },
+      },
+    },
+  },
   rateLimit: {
     window: 10,
     max: 100,
@@ -20,7 +78,7 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    openAPI(), // Memastikan plugin OpenAPI aktif
+    openAPI(),
   ],
   socialProviders: {
     google: {
