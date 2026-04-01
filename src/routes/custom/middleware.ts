@@ -5,7 +5,7 @@ import { auth } from "../../lib/auth.js";
 interface User {
   id: string;
   email: string;
-  role: "USER" | "MEMBER" | "ADMIN";
+  role: "USER" | "MEMBER";
 }
 
 // Definisikan Variables untuk Hono Context
