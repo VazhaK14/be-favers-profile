@@ -1,11 +1,11 @@
 import type { Context, Next } from "hono";
 import { auth } from "../../lib/auth.js";
 
-// Definisikan tipe untuk User agar TS tidak komplain tentang .role
+// Definisikan tipe untuk User sesuai Enum di Prisma
 interface User {
   id: string;
   email: string;
-  role: string;
+  role: "USER" | "MEMBER" | "ADMIN";
 }
 
 // Definisikan Variables untuk Hono Context
@@ -20,10 +20,10 @@ export const isMember = async (c: Context<Env>, next: Next) => {
     headers: c.req.raw.headers,
   });
 
-  // Cast session.user sebagai User karena kita tahu role ada di DB
-  const user = session?.user as User | undefined;
+  // Cast session.user sebagai User karena kita sudah definisikan enum di schema
+  const user = session?.user as unknown as User | undefined;
 
-  if (!session || user?.role !== "member") {
+  if (!session || user?.role !== "MEMBER") {
     return c.json({ message: "Unauthorized: Member only" }, 401);
   }
 
