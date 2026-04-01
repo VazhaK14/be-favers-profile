@@ -7,15 +7,21 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  MEMBER
+  ADMIN
+}
+
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
+  id            String    @id @default(cuid())
+  email         String    @unique
   name          String?
   emailVerified Boolean
   image         String?
-  role          String   @default("user")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Better-Auth relations
   sessions Session[]

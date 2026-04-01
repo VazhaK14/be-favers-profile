@@ -1,8 +1,29 @@
 import { Hono } from "hono";
 import { prisma } from "../../lib/prisma.js";
 import { isMember, type Env } from "./middleware.js";
+import { z } from "zod";
 
 const customRouter = new Hono<Env>();
+
+// Zod Schema untuk Validasi Theme
+const themeSchema = z.object({
+  fontFamily: z.enum(["Geist Variable", "Inter", "Serif", "Mono"]),
+  primaryColor: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid Hex color"),
+  backgroundColor: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid Hex color"),
+  cardColor: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid Hex color"),
+  accentColor: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid Hex color"),
+  textColor: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid Hex color"),
+});
 
 // GET /api/custom (Public)
 customRouter.get("/", async (c) => {
@@ -27,6 +48,12 @@ customRouter.patch("/", isMember, async (c) => {
   const user = c.get("user");
   const body = await c.req.json();
 
+  // Validasi menggunakan Zod
+  const result = themeSchema.safeParse(body);
+  if (!result.success) {
+    return c.json({ message: "Validation failed", errors: result.error }, 400);
+  }
+
   const {
     fontFamily,
     primaryColor,
@@ -34,27 +61,7 @@ customRouter.patch("/", isMember, async (c) => {
     cardColor,
     accentColor,
     textColor,
-  } = body;
-
-  const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-  const colors = [
-    primaryColor,
-    backgroundColor,
-    cardColor,
-    accentColor,
-    textColor,
-  ];
-
-  for (const color of colors) {
-    if (color && !hexRegex.test(color)) {
-      return c.json({ message: `Invalid Hex color format for: ${color}` }, 400);
-    }
-  }
-
-  const allowedFonts = ["Geist Variable", "Inter", "Serif", "Mono"];
-  if (fontFamily && !allowedFonts.includes(fontFamily)) {
-    return c.json({ message: `Invalid Font selection: ${fontFamily}` }, 400);
-  }
+  } = result.data;
 
   const existingTheme = await prisma.theme.findFirst();
 

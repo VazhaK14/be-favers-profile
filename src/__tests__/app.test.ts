@@ -1,6 +1,9 @@
 import { describe, expect, beforeAll, afterAll, it } from "bun:test";
 import { app } from "../index";
-import { prisma } from "../lib/prisma";
+import { auth } from "../lib/auth";
+import { beforeEach } from "node:test";
+import type { TestHelpers } from "better-auth/plugins";
+import type { User } from "@prisma/client";
 
 describe("App endpoints", () => {
   it("GET /api/auth/ok should return ok object", async () => {
@@ -41,59 +44,58 @@ describe("App endpoints", () => {
   });
 });
 
-describe("Already exists user role upgrade to member", () => {
-  const testEmail = "userlama@example.com";
-  const testPassword = "password123";
+describe("Auth Role Upgrade: User Lama via Test Utils", () => {
+  const testEmail = "userlama_testutils@example.com";
 
+  // Definisikan tipe data dengan ketat, hindari "any"
+  let testHelpers: TestHelpers;
+  let savedUser: User;
   beforeAll(async () => {
-    await prisma.user.deleteMany({ where: { email: testEmail } });
+    // 1. Ekstrak utilities dari Better-Auth context
+    const ctx = await auth.$context;
+
+    // Type assertion jika TypeScript di versi Anda tidak bisa meng-infernya secara otomatis
+    testHelpers = ctx.test as TestHelpers;
+    // 2. FASE 1 (Masa Lalu): Buat dan simpan "User Lama"
+    const userPayload = testHelpers.createUser({
+      email: testEmail,
+      name: "User Lama",
+      // role: "user" -> secara default auth akan mengisi ini
+    });
+
+    // Kembalian dari saveUser adalah object tipe User
+    savedUser = (await testHelpers.saveUser(userPayload)) as User;
   });
   afterAll(async () => {
+    // 3. Bersihkan sisa-sisa test (Teardown)
     process.env.LIST_MEMBER = "";
-    await prisma.user.deleteMany({ where: { email: testEmail } });
+    if (savedUser?.id) {
+      await testHelpers.deleteUser(savedUser.id);
+    }
   });
-
-  it("Supposed update role 'member' when old user in whitelist", async () => {
-    process.env.LIST_MEMBER = "";
-    await app.request("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: testEmail,
-        password: testPassword,
-        name: "Old User",
-      }),
-    });
-
-    const initialUser = await prisma.user.findUnique({
-      where: { email: testEmail },
-    });
-
-    expect(initialUser?.role).toBe("user");
-
+  it("HARUSNYA meng-upgrade role menjadi 'member' saat user lama membuat sesi (login) dan emailnya di whitelist", async () => {
+    // FASE 2: Fitur Rilis -> Email masuk ke Whitelist
     process.env.LIST_MEMBER = testEmail;
-
-    const loginRes = await app.request("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: testEmail,
-        password: testPassword,
+    // FASE 3: User Lama Login (TestHelpers membuat sesi di database)
+    // Hook session.create.before (Opsi 2) harusnya bereaksi di sini nantinya
+    await testHelpers.login({
+      userId: savedUser.id,
+    });
+    // Ambil Headers Auth (berisi Cookie session token)
+    const authHeaders = await testHelpers.getAuthHeaders({
+      userId: savedUser.id,
+    });
+    // FASE 4: Validasi Sesi menggunakan app.fetch Hono
+    const meRes = await app.fetch(
+      new Request("http://localhost/api/auth/get-session", {
+        method: "GET",
+        headers: authHeaders, // Header ini membuat request bersifat "authenticated"
       }),
-    });
-    expect(loginRes.status).toBe(200);
-
-    const loginData = await loginRes.json();
-    const token = loginData.token || loginData.data?.token;
-
-    const meRes = await app.request("/api/auth/me", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    );
     const meData = await meRes.json();
+    // 🚨 ASSERTION INI SAAT INI AKAN GAGAL (FAIL) 🚨
+    // Karena kita belum menulis hook session.create.before di lib/auth.ts
+    // Setelah hook itu ditulis, expect ini akan PASS.
     expect(meData.user?.role).toBe("member");
   });
 });
