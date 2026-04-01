@@ -1,15 +1,13 @@
 import { Hono } from "hono";
 import { prisma } from "../../lib/prisma.js";
-import { isMember } from "./middleware.js";
+import { isMember, type Env } from "./middleware.js";
 
-const customRouter = new Hono();
+const customRouter = new Hono<Env>();
 
 // GET /api/custom (Public)
-// Mengambil konfigurasi tema global
 customRouter.get("/", async (c) => {
   const theme = await prisma.theme.findFirst();
   
-  // Jika belum ada tema di DB, kembalikan default
   if (!theme) {
     return c.json({
       fontFamily: "Geist Variable",
@@ -25,14 +23,12 @@ customRouter.get("/", async (c) => {
 });
 
 // PATCH /api/custom (Member Only)
-// Mengubah konfigurasi tema global
 customRouter.patch("/", isMember, async (c) => {
   const user = c.get("user");
   const body = await c.req.json();
 
   const { fontFamily, primaryColor, backgroundColor, cardColor, accentColor, textColor } = body;
 
-  // 1. Validasi Hex Code (#000000 atau #000)
   const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
   const colors = [primaryColor, backgroundColor, cardColor, accentColor, textColor];
   
@@ -42,13 +38,11 @@ customRouter.patch("/", isMember, async (c) => {
     }
   }
 
-  // 2. Validasi Font (Dropdown options)
   const allowedFonts = ["Geist Variable", "Inter", "Serif", "Mono"];
   if (fontFamily && !allowedFonts.includes(fontFamily)) {
-    return c.json({ message: `Invalid Font selection: ${fontFamily}. Must be one of: ${allowedFonts.join(", ")}` }, 400);
+    return c.json({ message: `Invalid Font selection: ${fontFamily}` }, 400);
   }
 
-  // Cari theme yang sudah ada (global)
   const existingTheme = await prisma.theme.findFirst();
 
   let updatedTheme;
