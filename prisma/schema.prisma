@@ -13,6 +13,7 @@ model User {
   name          String?
   emailVerified Boolean
   image         String?
+  role          String   @default("user")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -20,6 +21,7 @@ model User {
   sessions Session[]
   accounts Account[]
   members  Member[]
+  theme    Theme?
 }
 
 model Member {
@@ -28,6 +30,19 @@ model Member {
   color String
 
   userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Theme {
+  id              String @id @default(cuid())
+  fontFamily      String @default("Geist Variable")
+  primaryColor    String @default("#000000")
+  backgroundColor String @default("#ffffff")
+  cardColor       String @default("#ffffff")
+  accentColor     String @default("#f3f4f6")
+  textColor       String @default("#000000")
+
+  userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

@@ -6,7 +6,34 @@ import { openAPI } from "better-auth/plugins";
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
+    user: {
+      additionalFields: {
+        role: {
+          type: "string",
+          defaultValue: "user",
+        },
+      },
+    },
   }),
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          // Asumsi LIST_MEMBER sudah berupa array (misal dari config atau global variable)
+          const listMember = (process.env.LIST_MEMBER as unknown as string[]) || [];
+          if (listMember.includes(user.email)) {
+            return {
+              data: {
+                ...user,
+                role: "member",
+              },
+            };
+          }
+          return { data: user };
+        },
+      },
+    },
+  },
   rateLimit: {
     window: 10,
     max: 100,
