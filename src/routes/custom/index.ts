@@ -7,7 +7,7 @@ const customRouter = new Hono<Env>();
 // GET /api/custom (Public)
 customRouter.get("/", async (c) => {
   const theme = await prisma.theme.findFirst();
-  
+
   if (!theme) {
     return c.json({
       fontFamily: "Geist Variable",
@@ -27,11 +27,24 @@ customRouter.patch("/", isMember, async (c) => {
   const user = c.get("user");
   const body = await c.req.json();
 
-  const { fontFamily, primaryColor, backgroundColor, cardColor, accentColor, textColor } = body;
+  const {
+    fontFamily,
+    primaryColor,
+    backgroundColor,
+    cardColor,
+    accentColor,
+    textColor,
+  } = body;
 
   const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-  const colors = [primaryColor, backgroundColor, cardColor, accentColor, textColor];
-  
+  const colors = [
+    primaryColor,
+    backgroundColor,
+    cardColor,
+    accentColor,
+    textColor,
+  ];
+
   for (const color of colors) {
     if (color && !hexRegex.test(color)) {
       return c.json({ message: `Invalid Hex color format for: ${color}` }, 400);
