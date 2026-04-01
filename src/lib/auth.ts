@@ -7,12 +7,23 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "USER",
+      },
+    },
+  },
   databaseHooks: {
     user: {
       // Hook untuk User Baru
       create: {
         before: async (user) => {
-          const listMember = (process.env.LIST_MEMBER as unknown as string[]) || [];
+          const listMember = (process.env.LIST_MEMBER || "").split(",").map(e => e.trim());
           if (listMember.includes(user.email)) {
             return {
               data: {
@@ -34,7 +45,7 @@ export const auth = betterAuth({
           });
 
           if (user) {
-            const listMember = (process.env.LIST_MEMBER as unknown as string[]) || [];
+            const listMember = (process.env.LIST_MEMBER || "").split(",").map(e => e.trim());
             const isWhitelisted = listMember.includes(user.email);
 
             // Jika email ada di whitelist tapi di DB masih USER, upgrade ke MEMBER
