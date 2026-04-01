@@ -41,7 +41,7 @@ customRouter.patch("/", isMember, async (c) => {
   // Validasi menggunakan Zod
   const result = themeSchema.safeParse(body);
   if (!result.success) {
-    return c.json({ message: "Validation failed", errors: result.error.errors }, 400);
+    return c.json({ message: "Validation failed", errors: result.error }, 400);
   }
 
   const { fontFamily, primaryColor, backgroundColor, cardColor, accentColor, textColor } = result.data;
