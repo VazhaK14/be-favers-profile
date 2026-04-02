@@ -7,28 +7,34 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  MEMBER
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
   name          String?
   emailVerified Boolean
   image         String?
+  role          Role     @default(USER)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Better-Auth relations
   sessions Session[]
   accounts Account[]
-  members  Member[]
 }
 
-model Member {
-  id    String @id @default(cuid())
-  font  String
-  color String
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Theme {
+  id              String @id @default(cuid())
+  fontFamily      String @default("Geist Variable")
+  primaryColor    String @default("#000000")
+  backgroundColor String @default("#ffffff")
+  cardColor       String @default("#ffffff")
+  accentColor     String @default("#f3f4f6")
+  textColor       String @default("#000000")
 }
 
 model Session {
@@ -58,4 +64,13 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
