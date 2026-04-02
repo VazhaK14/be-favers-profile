@@ -25,16 +25,6 @@ model User {
   // Better-Auth relations
   sessions Session[]
   accounts Account[]
-  members  Member[]
-}
-
-model Member {
-  id    String @id @default(cuid())
-  font  String
-  color String
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Theme {
