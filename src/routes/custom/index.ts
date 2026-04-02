@@ -70,7 +70,6 @@ customRouter.patch("/", isMember, async (c) => {
         cardColor,
         accentColor,
         textColor,
-        userId: user.id,
       },
     });
   }
