@@ -1,8 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma.js";
-import { openAPI } from "better-auth/plugins";
-
+import { openAPI, testUtils } from "better-auth/plugins";
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -20,7 +19,9 @@ export const auth = betterAuth({
       // Hook untuk User Baru
       create: {
         before: async (user) => {
-          const listMember = (process.env.LIST_MEMBER || "").split(",").map(e => e.trim());
+          const listMember = (process.env.LIST_MEMBER || "")
+            .split(",")
+            .map((e) => e.trim());
           if (listMember.includes(user.email)) {
             return {
               data: {
@@ -42,7 +43,9 @@ export const auth = betterAuth({
           });
 
           if (user) {
-            const listMember = (process.env.LIST_MEMBER || "").split(",").map(e => e.trim());
+            const listMember = (process.env.LIST_MEMBER || "")
+              .split(",")
+              .map((e) => e.trim());
             const isWhitelisted = listMember.includes(user.email);
 
             // Jika email ada di whitelist tapi di DB masih USER, upgrade ke MEMBER
@@ -51,7 +54,7 @@ export const auth = betterAuth({
                 where: { id: user.id },
                 data: { role: "MEMBER" },
               });
-            } 
+            }
             // Opsional: Jika email dihapus dari whitelist tapi di DB masih MEMBER, downgrade ke USER
             else if (!isWhitelisted && user.role === "MEMBER") {
               await prisma.user.update({
