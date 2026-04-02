@@ -26,7 +26,6 @@ model User {
   sessions Session[]
   accounts Account[]
   members  Member[]
-  theme    Theme?
 }
 
 model Member {
@@ -46,9 +45,6 @@ model Theme {
   cardColor       String @default("#ffffff")
   accentColor     String @default("#f3f4f6")
   textColor       String @default("#000000")
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {
