@@ -6,9 +6,6 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-<<<<<<< HEAD
-
-=======
   user: {
     additionalFields: {
       role: {
@@ -17,7 +14,6 @@ export const auth = betterAuth({
       },
     },
   },
->>>>>>> 70c2362621bab725f3346077ae22857cc0ed2e9e
   databaseHooks: {
     user: {
       // Hook untuk User Baru
@@ -86,7 +82,6 @@ export const auth = betterAuth({
 
   plugins: [
     openAPI(),
-    ...(process.env.NODE_ENV === "test" ? [testUtils()] : []),
   ],
   socialProviders: {
     google: {
