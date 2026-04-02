@@ -1,10 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { app } from "../index";
+import type { JsonValue } from "@prisma/client/runtime/client";
 
 describe("App endpoints", () => {
   it("GET /api/auth/ok should return ok object", async () => {
     const res = await app.request("/api/auth/ok");
-    const body = await res.json();
+    const body: { [ok: string]: JsonValue } = await res.json();
     expect(body.ok).toBe(true);
   });
 
@@ -34,7 +35,7 @@ describe("App endpoints", () => {
     const res = await app.request("/api/auth/openapi.json");
     expect(res.status).toBe(200);
 
-    const spec = await res.json();
+    const spec: any = await res.json();
     expect(spec.openapi).toBeDefined();
     expect(spec.info.title).toContain("Better Auth");
   });
